@@ -1,7 +1,7 @@
 # AgentRL
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/junaidahmed361/agentrl/main/assets/agentrl-header.png" alt="AgentRL - Harness Operating System for Agents" width="100%">
+  <img src="assets/agentrl-header.png" alt="AgentRL - Harness Operating System for Agents" width="100%">
 </p>
 
 [![PyPI version](https://badge.fury.io/py/agentrl-os.svg)](https://pypi.org/project/agentrl-os/)
