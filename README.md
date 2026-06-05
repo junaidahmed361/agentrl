@@ -211,6 +211,14 @@ agentrl evaluate
 agentrl deploy
 ```
 
+## Example demo
+
+For a local Hermes-style agent replication demo, see:
+
+[examples/local-hermes-agent-os.md](examples/local-hermes-agent-os.md)
+
+The demo shows how AgentRL can represent a local agent OS with router, coding, RAG, tool-use, memory, skills, registry, traces, and local deployment while keeping Hermes-style execution as a harness capability rather than a competing runtime.
+
 ## Python API
 
 ```python
