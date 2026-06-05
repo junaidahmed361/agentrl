@@ -12,7 +12,26 @@
 
 Local-first Harness Operating System for defining, evaluating, evolving, versioning, and deploying agent harnesses.
 
-Install package: `agentrl-os`
+Bring your own agent, repo, tools, or runtime. AgentRL turns them into harnesses you can evaluate, improve, version, and deploy locally.
+
+## Packages
+
+Install from PyPI:
+
+```bash
+pip install agentrl-os
+```
+
+Run from GitHub Container Registry:
+
+```bash
+docker pull ghcr.io/junaidahmed361/agentrl:latest
+docker run --rm ghcr.io/junaidahmed361/agentrl:latest --version
+```
+
+GitHub package: `ghcr.io/junaidahmed361/agentrl`
+
+Package name: `agentrl-os`
 
 Import package: `agentrl`
 
