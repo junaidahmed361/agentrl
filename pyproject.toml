@@ -63,6 +63,7 @@ include = [
   "/LICENSE",
   "/ARCHITECTURE.md",
   "/IMPLEMENTATION_PLAN.md",
+  "/assets",
   "/examples",
   "/src",
   "/tests",

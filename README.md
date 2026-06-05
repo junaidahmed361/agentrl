@@ -1,12 +1,16 @@
 # AgentRL
 
-[![PyPI version](https://img.shields.io/pypi/v/agentrl-os.svg)](https://pypi.org/project/agentrl-os/)
-[![Python versions](https://img.shields.io/pypi/pyversions/agentrl-os.svg)](https://pypi.org/project/agentrl-os/)
-[![License](https://img.shields.io/github/license/junaidahmed361/agentrl.svg)](https://github.com/junaidahmed361/agentrl/blob/main/LICENSE)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/junaidahmed361/agentrl/main/assets/agentrl-header.png" alt="AgentRL - Harness Operating System for Agents" width="100%">
+</p>
+
+[![PyPI version](https://badge.fury.io/py/agentrl-os.svg)](https://pypi.org/project/agentrl-os/)
+[![Python versions](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg)](https://pypi.org/project/agentrl-os/)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://github.com/junaidahmed361/agentrl/blob/main/LICENSE)
 [![CI](https://github.com/junaidahmed361/agentrl/actions/workflows/ci.yml/badge.svg)](https://github.com/junaidahmed361/agentrl/actions/workflows/ci.yml)
 [![Package check](https://github.com/junaidahmed361/agentrl/actions/workflows/package.yml/badge.svg)](https://github.com/junaidahmed361/agentrl/actions/workflows/package.yml)
 
-Local-first Harness Operating System for agents.
+Local-first Harness Operating System for defining, evaluating, evolving, versioning, and deploying agent harnesses.
 
 Install package: `agentrl-os`
 
