@@ -4,6 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
+from . import __version__
 from .project import Project
 
 
@@ -13,6 +14,7 @@ def _project(path: str | None = None) -> Project:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="agentrl", description="Local-first Harness Operating System for agents")
+    parser.add_argument("--version", action="version", version=f"agentrl {__version__}")
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_init = sub.add_parser("init")
