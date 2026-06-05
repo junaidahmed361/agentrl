@@ -242,6 +242,18 @@ For a local Hermes-style agent replication demo, see:
 
 The demo shows how AgentRL can represent a local agent OS with router, coding, RAG, tool-use, memory, skills, registry, traces, and local deployment while keeping Hermes-style execution as a harness capability rather than a competing runtime.
 
+You can also dogfood it directly from the CLI:
+
+```bash
+agentrl init local-agent-os --template local-agent-os
+cd local-agent-os
+agentrl agent-os --overview
+agentrl agent-os --goal "Fix a failing pytest in this repo"
+agentrl agent-os
+```
+
+The `agent-os` shell routes goals to a coding, RAG, or tool-use harness, records JSONL memory under `.agentrl/agent_os/`, writes trace files under `.agentrl/traces/`, and reuses the same evaluation, version registry, auto-harness, and local deployment commands as the rest of AgentRL.
+
 ## Python API
 
 ```python

@@ -37,6 +37,10 @@ def main(argv: list[str] | None = None) -> int:
     p_goal = sub.add_parser("run-goal")
     p_goal.add_argument("goal")
 
+    p_agent_os = sub.add_parser("agent-os", help="Launch a Hermes-style local agent harness shell")
+    p_agent_os.add_argument("--goal", help="Run one goal non-interactively and exit")
+    p_agent_os.add_argument("--overview", action="store_true", help="Print the local agent OS topology and exit")
+
     p_deploy = sub.add_parser("deploy")
     p_deploy.add_argument("--strategy", default="local")
 
@@ -70,6 +74,16 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(project.auto_harness(mode=args.mode), indent=2))
     elif args.command == "run-goal":
         print(json.dumps(project.run_goal(args.goal), indent=2))
+    elif args.command == "agent-os":
+        from .local_agent_os import LocalAgentOS, run_repl
+
+        local_os = LocalAgentOS(project)
+        if args.overview:
+            print(json.dumps(local_os.overview(), indent=2))
+        elif args.goal:
+            print(json.dumps(local_os.run_goal(args.goal), indent=2))
+        else:
+            return run_repl(project)
     elif args.command == "deploy":
         print(json.dumps(project.deploy(strategy=args.strategy), indent=2))
     elif args.command == "version":

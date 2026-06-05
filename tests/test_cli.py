@@ -27,3 +27,22 @@ def test_cli_acceptance_flow(tmp_path: Path):
 
     versions = json.loads(run_cli(project_dir, "version", "list").stdout)
     assert any(v["entity"].startswith("harness:") for v in versions)
+
+
+def test_local_agent_os_template_and_goal(tmp_path: Path):
+    run_cli(tmp_path, "init", "local-agent-os", "--template", "local-agent-os")
+    project_dir = tmp_path / "local-agent-os"
+
+    config = (project_dir / "agentrl.yaml").read_text()
+    assert "router_agent" in config
+    assert (project_dir / "LOCAL_AGENT_OS.md").exists()
+
+    overview = json.loads(run_cli(project_dir, "agent-os", "--overview").stdout)
+    assert overview["system"] == "local-agent-os"
+    assert "router_agent" in {agent["name"] for agent in overview["agents"]}
+
+    result = json.loads(run_cli(project_dir, "agent-os", "--goal", "Fix a failing pytest in this repo").stdout)
+    assert result["selected_harness"] == "coding"
+    assert result["evaluation"]["pass_rate"] == 1.0
+    assert Path(result["evaluation"]["trace_path"]).exists()
+    assert (project_dir / ".agentrl" / "agent_os" / "memory.jsonl").exists()

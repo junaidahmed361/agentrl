@@ -26,23 +26,58 @@ class Project:
     def init(cls, path: str | Path, template: str = "default") -> "Project":
         project = cls(path)
         if not project.config_path.exists():
-            config = {
-                "system": {"name": Path(path).name},
-                "agents": [
-                    {"name": "coding_agent", "type": "coding"},
-                    {"name": "rag_agent", "type": "rag"},
-                    {"name": "tool_agent", "type": "tool_use"},
-                ],
-                "harnesses": ["coding", "rag", "tool_use"],
-                "memory": {"episodic": True, "semantic": True, "skills": True},
-                "deployment": {"strategy": "local"},
-            }
+            config = cls._template_config(Path(path).name, template)
             project.config_path.write_text(yaml.safe_dump(config, sort_keys=False), encoding="utf-8")
         project.add_harness("coding")
         project.add_harness("rag")
         project.add_harness("tool_use")
+        if template in {"local-agent-os", "local_hermes", "hermes"}:
+            project._write_local_agent_os_readme()
         project._save_manifest()
         return project
+
+    @staticmethod
+    def _template_config(name: str, template: str) -> dict[str, Any]:
+        base = {
+            "system": {"name": name},
+            "agents": [
+                {"name": "coding_agent", "type": "coding"},
+                {"name": "rag_agent", "type": "rag"},
+                {"name": "tool_agent", "type": "tool_use"},
+            ],
+            "harnesses": ["coding", "rag", "tool_use"],
+            "memory": {"episodic": True, "semantic": True, "skills": True},
+            "deployment": {"strategy": "local"},
+        }
+        if template in {"local-agent-os", "local_hermes", "hermes"}:
+            base["system"] |= {"template": "local-agent-os", "description": "Hermes-style local agent harness stack"}
+            base["agents"] = [
+                {"name": "router_agent", "type": "router", "routes_to": ["coding", "rag", "tool_use"]},
+                {"name": "coding_agent", "type": "coding", "harness": "coding"},
+                {"name": "rag_agent", "type": "rag", "harness": "rag"},
+                {"name": "tool_agent", "type": "tool_use", "harness": "tool_use"},
+            ]
+            base["observability"] = {"traces": True, "local_memory_jsonl": True, "registry": True}
+            base["deployment"] = {"strategy": "local", "approval": "evaluation_passes"}
+        return base
+
+    def _write_local_agent_os_readme(self) -> None:
+        readme = self.root / "LOCAL_AGENT_OS.md"
+        if readme.exists():
+            return
+        readme.write_text(
+            "# Local Agent OS demo\n\n"
+            "This project dogfoods AgentRL as a Hermes-style local harness stack.\n\n"
+            "Run it with:\n\n"
+            "```bash\n"
+            "agentrl agent-os --goal \"Fix a failing test in this repo\"\n"
+            "agentrl agent-os\n"
+            "```\n\n"
+            "The shell includes a router agent plus coding, RAG, and tool-use harnesses. "
+            "It records local JSONL memory, writes evaluation traces, registers versions, "
+            "and creates local deployment records under `.agentrl/`.\n",
+            encoding="utf-8",
+        )
 
     def _load_config(self) -> None:
         config = yaml.safe_load(self.config_path.read_text(encoding="utf-8")) or {}
