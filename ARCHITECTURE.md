@@ -30,6 +30,30 @@ Project
 
 The adapter imports Repo2RLEnv or Harbor-compatible task outputs into `TaskSet`. It preserves provenance, content hashes, sandbox metadata, and executable verification commands. It intentionally does not synthesize repository tasks itself.
 
+## OpenHarness Adapter
+
+OpenHarness is treated as a runtime adapter, not as a feature list for AgentRL to reimplement.
+
+```text
+OpenHarness: goal/task → execution trajectory
+AgentRL: execution trajectory → evaluation → evolution → versioning → deployment
+```
+
+The adapter can register an OpenHarness runtime boundary with `Project.attach_runtime(...)` and import OpenHarness-style traces into `TaskSet` objects. Runtime concerns such as tools, MCP, permissions, memory execution, skills loading, subagents, hooks, context compression, and the agent loop remain OpenHarness responsibilities.
+
+## Layering
+
+```text
+Repo2RLEnv / Harbor
+  repo → verifiable coding tasks
+
+OpenHarness
+  task or goal → execution trajectory
+
+AgentRL
+  execution trajectory → evaluate, evolve, version, deploy, rollback
+```
+
 ## Design constraints
 
 - No competing workflow engine.

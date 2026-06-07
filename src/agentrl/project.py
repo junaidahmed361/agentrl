@@ -112,6 +112,28 @@ class Project:
     def harness(self, name: str) -> Harness:
         return self.harnesses[name]
 
+    def attach_runtime(self, runtime: Any, name: str | None = None) -> dict[str, Any]:
+        """Register an execution runtime adapter without making AgentRL a runtime.
+
+        Runtime adapters own goal -> execution. AgentRL stores their boundary,
+        provenance, and imported artifacts so the project lifecycle can evaluate,
+        evolve, version, and deploy behavior around them.
+        """
+
+        runtime_dir = ensure_dir(self.root / ".agentrl" / "runtimes")
+        if hasattr(runtime, "to_runtime_record"):
+            record = runtime.to_runtime_record()
+        elif isinstance(runtime, dict):
+            record = dict(runtime)
+        else:
+            record = {"adapter": type(runtime).__name__, "metadata": repr(runtime)}
+        record.setdefault("name", name or record.get("adapter", "runtime"))
+        record.setdefault("boundary", "Runtime executes goals; AgentRL manages lifecycle artifacts.")
+        path = runtime_dir / f"{str(record['name']).replace('/', '-')}.json"
+        path.write_text(json.dumps(record, indent=2), encoding="utf-8")
+        version = self.registry.register_file(path, entity=f"runtime:{record['name']}", metadata={"adapter": record.get("adapter")})
+        return {"status": "attached", "runtime": record, "path": str(path), "version": version.to_dict()}
+
     def compile(self) -> list[dict[str, Any]]:
         compiled_dir = ensure_dir(self.root / ".agentrl" / "compiled")
         records = []

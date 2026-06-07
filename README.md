@@ -136,6 +136,41 @@ LangGraph: how should the agent transition between steps?
 AgentRL: how is this behavior evaluated, improved, versioned, and deployed?
 ```
 
+### AgentRL vs OpenHarness
+
+OpenHarness and AgentRL are adjacent, not substitutes.
+
+OpenHarness is an agent runtime harness: it focuses on goal execution with tools, memory, permissions, skills, hooks, MCP, subagents, context management, and an agent loop.
+
+AgentRL is a harness lifecycle system: it starts from execution artifacts and manages evaluation, reward definitions, trace collection, versioning, evolution, deployment, and rollback.
+
+```text
+OpenHarness:
+Goal → Execution
+
+AgentRL:
+Execution → Evaluation → Evolution → Versioning → Deployment
+```
+
+AgentRL should not add a competing agent loop, MCP layer, permissions framework, subagent runtime, or context manager. OpenHarness can instead be attached as a runtime adapter:
+
+```python
+from agentrl import Project
+from agentrl.adapters import OpenHarnessAdapter
+
+project = Project("./agent-system")
+runtime = OpenHarnessAdapter.from_endpoint("http://localhost:8000")
+project.attach_runtime(runtime)
+```
+
+Clean layering:
+
+```text
+Repo2RLEnv / Harbor: repo → verifiable coding tasks
+OpenHarness: task or goal → execution trajectory
+AgentRL: execution trajectory → evaluate, evolve, version, deploy
+```
+
 ### AgentRL vs TRL/RL libraries
 
 TRL and similar libraries help train models.
@@ -324,6 +359,29 @@ project.evaluate()
 
 The adapter maps Repo2RLEnv/Harbor-style metadata into AgentRL `TaskSet` objects and attaches executable verification rewards to the coding harness.
 
+## OpenHarness runtime adapter
+
+Use OpenHarness as an execution runtime adapter instead of rebuilding its runtime capabilities inside AgentRL.
+
+```python
+from agentrl import Project
+from agentrl.adapters import OpenHarnessAdapter
+
+project = Project.init("./agent-system")
+runtime = OpenHarnessAdapter.from_endpoint("http://localhost:8000")
+project.attach_runtime(runtime)
+```
+
+You can also import exported OpenHarness-style traces for lifecycle evaluation/versioning:
+
+```python
+runtime = OpenHarnessAdapter.from_trace_file("./openharness-traces.jsonl")
+project.harness("coding").add_tasks(runtime.to_taskset())
+project.evaluate()
+```
+
+The adapter boundary is intentional: OpenHarness owns goal execution; AgentRL owns evaluation, evolution, version registry, deployment records, and rollback.
+
 ## CLI
 
 ```bash
@@ -363,6 +421,7 @@ AgentRL stores project-local state under `.agentrl/`:
 - Local version registry with list/diff/rollback
 - Built-in coding, RAG, and tool-use harnesses
 - Repo2RLEnvAdapter for Harbor-style coding tasks
+- OpenHarnessAdapter for external runtime traces without reimplementing runtime concerns
 - Evaluation engine with JSONL traces
 - Basic self-evolution and auto-harness candidate promotion/archive
 - Local deployment artifacts with evaluation preflight gating

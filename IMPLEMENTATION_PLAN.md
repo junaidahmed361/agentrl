@@ -9,6 +9,7 @@
 5. Observability: JSONL traces and evaluation report.
 6. Deployment: local deployment artifacts referencing versioned harnesses.
 7. Repo2RLEnvAdapter: imports generated tasks into CodingHarness without reimplementing Repo2RLEnv synthesis.
+8. OpenHarnessAdapter: registers external agent runtimes and imports execution traces without reimplementing agent loops, tools, MCP, permissions, memory execution, or subagents.
 
 ## Acceptance gates
 
@@ -26,5 +27,5 @@ agentrl deploy
 
 - Docker, canary, blue/green deployment adapters.
 - Hosted registry as optional service.
-- External backend adapters for TRL, Ray, Verifiers, Atropos, LangGraph, Hermes, and OpenClaw.
+- External backend adapters for TRL, Ray, Verifiers, Atropos, LangGraph, Hermes, OpenHarness, and OpenClaw.
 - Observability Studio UI.
