@@ -68,7 +68,11 @@ class Project:
         readme.write_text(
             "# Local Agent OS demo\n\n"
             "This project dogfoods AgentRL as a Hermes-style local harness stack.\n\n"
-            "Run it with:\n\n"
+            "Run the one-command bootstrap from outside the project with:\n\n"
+            "```bash\n"
+            "agentrl demo local-agent-os --path local-agent-os --goal \"Fix a failing test in this repo\"\n"
+            "```\n\n"
+            "Then continue inside the project with:\n\n"
             "```bash\n"
             "agentrl agent-os --goal \"Fix a failing test in this repo\"\n"
             "agentrl agent-os\n"

@@ -46,3 +46,27 @@ def test_local_agent_os_template_and_goal(tmp_path: Path):
     assert result["evaluation"]["pass_rate"] == 1.0
     assert Path(result["evaluation"]["trace_path"]).exists()
     assert (project_dir / ".agentrl" / "agent_os" / "memory.jsonl").exists()
+
+    memory = json.loads(run_cli(tmp_path, "agent-os", "--project", str(project_dir), "--memory").stdout)
+    assert memory[-1]["harness"] == "coding"
+
+
+def test_local_agent_os_quick_launch_demo(tmp_path: Path):
+    project_dir = tmp_path / "quick-local-agent-os"
+    summary = json.loads(run_cli(
+        tmp_path,
+        "demo",
+        "local-agent-os",
+        "--path",
+        str(project_dir),
+        "--goal",
+        "Answer from docs with citations",
+    ).stdout)
+
+    assert summary["status"] == "ready"
+    assert summary["initialized"] is True
+    assert summary["template"] == "local-agent-os"
+    assert summary["goal_result"]["selected_harness"] == "rag"
+    assert summary["deployment"]["status"] == "deployed"
+    assert (project_dir / "agentrl.yaml").exists()
+    assert (project_dir / ".agentrl" / "deployments" / "local" / "deployment.json").exists()

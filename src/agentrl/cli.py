@@ -12,6 +12,46 @@ def _project(path: str | None = None) -> Project:
     return Project(path or Path.cwd())
 
 
+def _quick_launch_local_agent_os(path: str | Path, goal: str | None = None) -> dict[str, object]:
+    from .local_agent_os import LocalAgentOS
+
+    project_path = Path(path)
+    if (project_path / "agentrl.yaml").exists():
+        project = Project(project_path)
+        initialized = False
+    else:
+        project = Project.init(project_path, template="local-agent-os")
+        initialized = True
+
+    compiled = project.compile()
+    local_os = LocalAgentOS(project)
+    goal_result = local_os.run_goal(goal or "Inspect the local AgentRL harness stack")
+    evaluation = [r.to_dict() for r in project.evaluate()]
+    evolution = project.auto_harness(mode="adaptive")
+    deployment = project.deploy(strategy="local")
+
+    return {
+        "status": "ready",
+        "initialized": initialized,
+        "path": str(project.root),
+        "template": "local-agent-os",
+        "agents": [agent["name"] for agent in local_os.overview()["agents"]],
+        "harnesses": list(project.harnesses),
+        "compiled": compiled,
+        "goal_result": goal_result,
+        "evaluation": evaluation,
+        "auto_harness": evolution,
+        "deployment": deployment,
+        "next_commands": [
+            f"cd {project.root}",
+            "agentrl agent-os",
+            "agentrl agent-os --memory",
+            "agentrl evaluate",
+            "agentrl version list",
+        ],
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="agentrl", description="Local-first Harness Operating System for agents")
     parser.add_argument("--version", action="version", version=f"agentrl {__version__}")
@@ -40,6 +80,15 @@ def main(argv: list[str] | None = None) -> int:
     p_agent_os = sub.add_parser("agent-os", help="Launch a Hermes-style local agent harness shell")
     p_agent_os.add_argument("--goal", help="Run one goal non-interactively and exit")
     p_agent_os.add_argument("--overview", action="store_true", help="Print the local agent OS topology and exit")
+    p_agent_os.add_argument("--memory", action="store_true", help="Print recent local agent OS memory and exit")
+    p_agent_os.add_argument("--project", help="Project path to run instead of the current directory")
+
+    p_demo = sub.add_parser("demo", help="Quick-launch bundled demos with minimal setup")
+    demo_sub = p_demo.add_subparsers(dest="demo_command", required=True)
+    p_demo_agent_os = demo_sub.add_parser("local-agent-os", help="Initialize, evaluate, evolve, deploy, and run the local Agent OS demo")
+    p_demo_agent_os.add_argument("--path", default="local-agent-os", help="Demo project path to create or reuse")
+    p_demo_agent_os.add_argument("--goal", help="Goal to route through the local Agent OS during launch")
+    p_demo_agent_os.add_argument("--shell", action="store_true", help="Open the interactive agent-os shell after bootstrap")
 
     p_deploy = sub.add_parser("deploy")
     p_deploy.add_argument("--strategy", default="local")
@@ -60,8 +109,17 @@ def main(argv: list[str] | None = None) -> int:
         project = Project.init(args.path, template=args.template)
         print(json.dumps({"status": "initialized", "path": str(project.root)}, indent=2))
         return 0
+    if args.command == "demo":
+        if args.demo_command == "local-agent-os":
+            summary = _quick_launch_local_agent_os(args.path, goal=args.goal)
+            print(json.dumps(summary, indent=2))
+            if args.shell:
+                from .local_agent_os import run_repl
 
-    project = _project()
+                return run_repl(Project(str(summary["path"])))
+        return 0
+
+    project = _project(getattr(args, "project", None))
     if args.command == "compile":
         print(json.dumps(project.compile(), indent=2))
     elif args.command == "train":
@@ -80,6 +138,8 @@ def main(argv: list[str] | None = None) -> int:
         local_os = LocalAgentOS(project)
         if args.overview:
             print(json.dumps(local_os.overview(), indent=2))
+        elif args.memory:
+            print(json.dumps(local_os.memory(), indent=2))
         elif args.goal:
             print(json.dumps(local_os.run_goal(args.goal), indent=2))
         else:

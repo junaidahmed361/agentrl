@@ -245,14 +245,14 @@ The demo shows how AgentRL can represent a local agent OS with router, coding, R
 You can also dogfood it directly from the CLI:
 
 ```bash
-agentrl init local-agent-os --template local-agent-os
+agentrl demo local-agent-os --path local-agent-os --goal "Fix a failing pytest in this repo"
 cd local-agent-os
-agentrl agent-os --overview
-agentrl agent-os --goal "Fix a failing pytest in this repo"
 agentrl agent-os
 ```
 
-The `agent-os` shell routes goals to a coding, RAG, or tool-use harness, records JSONL memory under `.agentrl/agent_os/`, writes trace files under `.agentrl/traces/`, and reuses the same evaluation, version registry, auto-harness, and local deployment commands as the rest of AgentRL.
+The `demo local-agent-os` command removes the extra prep I had to do while dogfooding: it initializes the template, compiles harnesses, routes a sample goal, records trace/memory files, runs evaluation, creates an adaptive auto-harness candidate, and writes a local deployment record. The `agent-os` shell then lets you keep interacting with the same project.
+
+The shell routes goals to a coding, RAG, or tool-use harness, records JSONL memory under `.agentrl/agent_os/`, writes trace files under `.agentrl/traces/`, and reuses the same evaluation, version registry, auto-harness, and local deployment commands as the rest of AgentRL.
 
 ## Python API
 

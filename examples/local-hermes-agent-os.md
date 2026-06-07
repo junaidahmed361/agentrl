@@ -19,15 +19,37 @@ AgentRL treats each behavior as a harness that can be compiled, evaluated, evolv
 
 ## Run the demo
 
+Fast path:
+
 ```bash
 pip install agentrl-os
-agentrl init local-hermes-agent-os
+agentrl demo local-agent-os --path local-hermes-agent-os --goal "Fix a failing pytest in this repo"
+cd local-hermes-agent-os
+agentrl agent-os
+```
+
+That one `agentrl demo local-agent-os` command initializes the template, compiles harness specs, routes a sample goal, writes traces/memory, runs evaluation, creates an adaptive auto-harness candidate, and writes a local deployment record.
+
+Manual path, if you want to run each lifecycle step yourself:
+
+```bash
+pip install agentrl-os
+agentrl init local-hermes-agent-os --template local-agent-os
 cd local-hermes-agent-os
 agentrl compile
+agentrl agent-os --overview
+agentrl agent-os --goal "Fix a failing pytest in this repo"
 agentrl evaluate
 agentrl auto-harness --mode adaptive
 agentrl deploy
 agentrl version list
+```
+
+You can also inspect a demo project without changing directories:
+
+```bash
+agentrl agent-os --project local-hermes-agent-os --memory
+agentrl agent-os --project local-hermes-agent-os --overview
 ```
 
 ## What this creates
