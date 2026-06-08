@@ -77,6 +77,12 @@ def main(argv: list[str] | None = None) -> int:
     p_goal = sub.add_parser("run-goal")
     p_goal.add_argument("goal")
 
+    p_create_agent = sub.add_parser("create-agent-harness", help="Create a targeted agent harness with inferred components")
+    p_create_agent.add_argument("--agent", required=True, help="Targeted agent name, e.g. 'Market Researcher'")
+    p_create_agent.add_argument("--role", required=True, help="Targeted role, e.g. market_researcher")
+    p_create_agent.add_argument("--objective", required=True, help="Agent objective")
+    p_create_agent.add_argument("--components", help="Comma-separated component override. Defaults are inferred from role/objective.")
+
     p_agent_os = sub.add_parser("agent-os", help="Launch a Hermes-style local agent harness shell")
     p_agent_os.add_argument("--goal", help="Run one goal non-interactively and exit")
     p_agent_os.add_argument("--overview", action="store_true", help="Print the local agent OS topology and exit")
@@ -132,6 +138,9 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(project.auto_harness(mode=args.mode), indent=2))
     elif args.command == "run-goal":
         print(json.dumps(project.run_goal(args.goal), indent=2))
+    elif args.command == "create-agent-harness":
+        components = [item.strip() for item in args.components.split(",") if item.strip()] if args.components else None
+        print(json.dumps(project.create_agent_harness(args.agent, args.role, args.objective, components=components), indent=2))
     elif args.command == "agent-os":
         from .local_agent_os import LocalAgentOS, run_repl
 

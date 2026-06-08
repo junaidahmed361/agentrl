@@ -5,6 +5,7 @@ from typing import Any
 import json
 import yaml
 
+from .agent_harness import TargetedAgentHarness
 from .harness import Harness
 from .harnesses import CodingHarness, RAGHarness, ToolUseHarness
 from .models import EvaluationResult, RewardSpec, Task, TaskSet, ensure_dir, stable_hash, utc_now
@@ -111,6 +112,37 @@ class Project:
 
     def harness(self, name: str) -> Harness:
         return self.harnesses[name]
+
+    def create_agent_harness(
+        self,
+        agent_name: str,
+        role: str,
+        objective: str,
+        components: list[str] | None = None,
+    ) -> dict[str, Any]:
+        """Create a targeted agent harness with inferred lifecycle components.
+
+        This is the AgentRL-side primitive Campaigns consumes when a user decides
+        to employ a targeted agent such as a market researcher.
+        """
+
+        targeted = TargetedAgentHarness.create(
+            agent_name=agent_name,
+            role=role,
+            objective=objective,
+            components=components,
+        )
+        self.harnesses[targeted.harness.name] = targeted.harness
+        harness_dir = ensure_dir(self.root / ".agentrl" / "targeted_agents")
+        path = harness_dir / f"{targeted.harness.name}.json"
+        path.write_text(json.dumps(targeted.to_dict(), indent=2), encoding="utf-8")
+        version = self.registry.register_file(
+            path,
+            entity=f"targeted_agent:{targeted.agent_name}",
+            metadata={"role": role, "components": [component.name for component in targeted.components]},
+        )
+        self._save_manifest()
+        return {"status": "created", "targeted_agent": targeted.to_dict(), "path": str(path), "version": version.to_dict()}
 
     def attach_runtime(self, runtime: Any, name: str | None = None) -> dict[str, Any]:
         """Register an execution runtime adapter without making AgentRL a runtime.

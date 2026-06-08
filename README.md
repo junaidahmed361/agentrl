@@ -269,6 +269,25 @@ agentrl evaluate
 agentrl deploy
 ```
 
+## Targeted agent harnesses for Campaigns
+
+Campaigns can employ AgentRL-backed agents, but AgentRL owns the harness lifecycle for each targeted agent.
+
+Example: create a market researcher harness before a marketing campaign employs it.
+
+```bash
+agentrl init campaign-harnesses
+cd campaign-harnesses
+agentrl create-agent-harness \
+  --agent "Market Researcher" \
+  --role market_researcher \
+  --objective "Support a marketing campaign with RAG-grounded market analysis"
+agentrl evaluate
+agentrl deploy
+```
+
+AgentRL infers applicable components from the role/objective, such as RAG, trace recording, decision logs, evaluation, memory, tool use, approval gates, and contracting support. Campaigns then references the resulting pod/harness declaration as an employed fleet agent while preserving AgentRL as the lifecycle owner.
+
 ## Example demo
 
 For a local Hermes-style agent replication demo, see:

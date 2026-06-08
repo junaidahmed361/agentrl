@@ -21,6 +21,7 @@ Project
 
 - Project: root abstraction and lifecycle facade.
 - Harness: task, reward, prompt, skill, memory policy, tool, and evaluation unit.
+- TargetedAgentHarness: role-specific harness declaration with inferred components for employed campaign agents.
 - Version Registry: local `.agentrl/registry` artifact store.
 - Evaluation: runs task verification and emits metrics plus JSONL traces.
 - Self-Evolution: creates bounded prompt/skill/memory candidates, evaluates them, promotes winners, archives rejected candidates.
@@ -43,15 +44,17 @@ The adapter can register an OpenHarness runtime boundary with `Project.attach_ru
 
 ## Layering
 
-```text
-Repo2RLEnv / Harbor
-  repo → verifiable coding tasks
+CampaignOS / Campaigns can sit above AgentRL. In that relationship, a user first creates a targeted AgentRL harness such as `Market Researcher`; Campaigns later employs that harness in a campaign fleet and may let the employed agent contract short-term workers. AgentRL remains responsible for the employed agent's lifecycle artifacts: components, evals, traces, self-evolution candidates, versions, deployment, and rollback.
 
-OpenHarness
-  task or goal → execution trajectory
+```text
+Campaigns
+  goal → organization → employed agents → contract agents → final review
 
 AgentRL
-  execution trajectory → evaluate, evolve, version, deploy, rollback
+  targeted agent harness → evaluate → evolve → version → deploy/rollback
+
+Runtime
+  task or goal → execution trajectory
 ```
 
 ## Design constraints
