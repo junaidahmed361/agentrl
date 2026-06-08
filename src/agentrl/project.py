@@ -242,6 +242,57 @@ class Project:
             self.compile()
         return candidate
 
+    def self_retro(self, review: dict[str, Any]) -> dict[str, Any]:
+        """Traverse final-review trace signals, infer a root cause, then reinforce.
+
+        This is the AgentRL-side self-retro entrypoint used after a user gives
+        final campaign review. Runtime systems still own trace execution; AgentRL
+        owns root-cause attribution and harness reinforcement.
+        """
+
+        root_cause = self._root_cause_from_trace_review(review)
+        instruction = (
+            f"Root cause from final review: {root_cause['summary']} "
+            f"Improve outcome by adding evidence checks and evaluation coverage for: {review.get('final_review', '')}"
+        ).strip()
+        result = self.reinforce(
+            {
+                "source": "agent_driven_final_review_retro",
+                "target": root_cause["target"],
+                "instruction": instruction,
+                "reinforcement_targets": review.get("reinforcement_targets", ["evaluation", "memory", "prompts"]),
+                "root_cause": root_cause,
+            }
+        )
+        result["root_cause"] = root_cause
+        return result
+
+    def _root_cause_from_trace_review(self, review: dict[str, Any]) -> dict[str, Any]:
+        text = " ".join([str(review.get("final_review", "")), *[str(signal) for signal in review.get("signals", [])]]).lower()
+        target = str(review.get("target", ""))
+        if not target:
+            for harness in self.harnesses.values():
+                agent_name = str(harness.metadata.get("agent_name", harness.name))
+                tokens = {agent_name.lower(), agent_name.lower().replace(" ", "-"), harness.name.lower()}
+                if any(token and token in text for token in tokens):
+                    target = agent_name
+                    break
+        target = target or "project"
+        summary = "trace evidence gap"
+        if "competitor" in text and "pricing" in text:
+            summary = "competitor pricing evidence gap"
+        elif "citation" in text or "evidence" in text:
+            summary = "evidence citation gap"
+        elif "metric" in text or "analytics" in text:
+            summary = "measurement quality gap"
+        return {
+            "target": target,
+            "summary": summary,
+            "trace_paths": list(review.get("trace_paths", [])),
+            "signals": list(review.get("signals", [])),
+            "final_review": review.get("final_review", ""),
+        }
+
     def reinforce(self, feedback: dict[str, Any]) -> dict[str, Any]:
         """Apply retrospective feedback to the relevant harness lifecycle layer.
 
@@ -262,6 +313,7 @@ class Project:
             "harness": harness.name if harness else None,
             "instruction": instruction,
             "reinforcement_targets": list(targets),
+            "root_cause": feedback.get("root_cause"),
             "raw_feedback": feedback,
         }
         reinforcement_dir = ensure_dir(self.root / ".agentrl" / "reinforcements")

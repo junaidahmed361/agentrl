@@ -77,6 +77,11 @@ project.reinforce({    # retro feedback routed from Campaigns or another product
     "instruction": "Require competitor price citations before recommendations.",
     "reinforcement_targets": ["evaluation", "memory", "prompts"],
 })
+project.self_retro({   # final-review trace traversal -> root cause -> reinforcement
+    "final_review": "Weak competitor pricing evidence in the Market Researcher trace.",
+    "trace_paths": ["traces/market-researcher.jsonl", "traces/analytics-agent.jsonl"],
+    "signals": ["Market Researcher omitted competitor pricing citations"],
+})
 project.train(strategy="verification")
 project.evaluate()
 project.auto_harness()
@@ -332,6 +337,11 @@ project.reinforce({    # retro feedback routed from Campaigns or another product
     "target": "Market Researcher",
     "instruction": "Require competitor price citations before recommendations.",
     "reinforcement_targets": ["evaluation", "memory", "prompts"],
+})
+project.self_retro({   # final-review trace traversal -> root cause -> reinforcement
+    "final_review": "Weak competitor pricing evidence in the Market Researcher trace.",
+    "trace_paths": ["traces/market-researcher.jsonl", "traces/analytics-agent.jsonl"],
+    "signals": ["Market Researcher omitted competitor pricing citations"],
 })
 project.train(strategy="verification")
 project.evaluate()
