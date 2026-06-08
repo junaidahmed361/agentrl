@@ -24,6 +24,16 @@ def test_project_compile_evaluate_deploy(tmp_path: Path):
     assert (project.root / ".agentrl" / "deployments" / "local" / "deployment.json").exists()
 
 
+def test_project_exposes_sklearn_style_lifecycle_primitives(tmp_path: Path):
+    project = Project.init(tmp_path / "sklearn-style")
+
+    assert project.fit() is project
+    assert project.fit_result_["promoted"] is True
+    assert len(project.transform()) == 3
+    assert len(project.fit_transform()) == 3
+    assert project.score() == 1.0
+
+
 def test_goal_workflow_and_approval_gate(tmp_path: Path):
     project = Project.init(tmp_path / "goal-project")
     result = project.run_goal("Fix the failing login test.")

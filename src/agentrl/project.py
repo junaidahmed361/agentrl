@@ -174,6 +174,33 @@ class Project:
             records.append(self.registry.register_file(path, entity=f"harness:{harness.name}", metadata={"kind": harness.kind}).to_dict())
         return records
 
+    def fit(self, X: Any | None = None, y: Any | None = None, strategy: str = "verification") -> "Project":
+        """Scikit-learn-style lifecycle fit.
+
+        `fit` optimizes harness artifacts and stores the candidate on `fit_result_`.
+        AgentRL keeps this limited to harness lifecycle work; campaign autorun and
+        dynamic organization loops belong in the Campaigns repo.
+        """
+
+        self.fit_result_ = self.train(strategy=strategy)
+        return self
+
+    def transform(self, X: Any | None = None) -> list[dict[str, Any]]:
+        """Compile harness artifacts as the sklearn-style transform output."""
+
+        return self.compile()
+
+    def fit_transform(self, X: Any | None = None, y: Any | None = None, strategy: str = "verification") -> list[dict[str, Any]]:
+        return self.fit(X=X, y=y, strategy=strategy).transform(X)
+
+    def score(self, X: Any | None = None, y: Any | None = None) -> float:
+        """Return average evaluation pass rate across project harnesses."""
+
+        results = self.evaluate()
+        if not results:
+            return 0.0
+        return sum(result.pass_rate for result in results) / len(results)
+
     def evaluate(self) -> list[EvaluationResult]:
         trace_dir = ensure_dir(self.root / ".agentrl" / "traces")
         results = [h.evaluate(self.root, trace_dir) for h in self.harnesses.values()]

@@ -68,6 +68,9 @@ from agentrl import Project
 
 project = Project("./my-agent-system")
 project.compile()
+project.fit()          # sklearn-style alias for lifecycle train/evolve
+project.transform()    # compiled harness artifacts
+project.score()        # average harness evaluation pass rate
 project.train(strategy="verification")
 project.evaluate()
 project.auto_harness()
@@ -152,7 +155,7 @@ AgentRL:
 Execution → Evaluation → Evolution → Versioning → Deployment
 ```
 
-AgentRL should not add a competing agent loop, MCP layer, permissions framework, subagent runtime, or context manager. OpenHarness can instead be attached as a runtime adapter:
+AgentRL should not add a competing agent loop, MCP layer, permissions framework, subagent runtime, campaign autorun loop, contracted-worker queue, or context manager. OpenHarness can instead be attached as a runtime adapter:
 
 ```python
 from agentrl import Project
@@ -315,6 +318,9 @@ from agentrl import Project
 
 project = Project("./my-agent-system")
 project.compile()
+project.fit()          # sklearn-style alias for lifecycle train/evolve
+project.transform()    # compiled harness artifacts
+project.score()        # average harness evaluation pass rate
 project.train(strategy="verification")
 project.evaluate()
 project.auto_harness()
