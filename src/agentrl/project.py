@@ -242,6 +242,75 @@ class Project:
             self.compile()
         return candidate
 
+    def reinforce(self, feedback: dict[str, Any]) -> dict[str, Any]:
+        """Apply retrospective feedback to the relevant harness lifecycle layer.
+
+        Campaigns can route a retrospective here when the learning points at an
+        agent/harness rather than campaign strategy. AgentRL records the feedback,
+        updates lightweight lifecycle surfaces, evaluates, versions the candidate,
+        and keeps runtime/campaign orchestration outside this repo.
+        """
+
+        target = str(feedback.get("target") or feedback.get("agent") or "project")
+        instruction = str(feedback.get("instruction") or feedback.get("reinforce") or feedback.get("summary") or "")
+        targets = tuple(feedback.get("reinforcement_targets") or ("prompts", "memory", "skills"))
+        harness = self._harness_for_reinforcement_target(target)
+        reinforcement = {
+            "created_at": utc_now(),
+            "source": feedback.get("source", "retrospective"),
+            "target": target,
+            "harness": harness.name if harness else None,
+            "instruction": instruction,
+            "reinforcement_targets": list(targets),
+            "raw_feedback": feedback,
+        }
+        reinforcement_dir = ensure_dir(self.root / ".agentrl" / "reinforcements")
+        feedback_path = reinforcement_dir / f"retro-{stable_hash(reinforcement)[:8]}.json"
+        feedback_path.write_text(json.dumps(reinforcement, indent=2), encoding="utf-8")
+
+        candidate = {"created_at": utc_now(), "strategy": "retrospective", "targets": list(targets), "changes": []}
+        if harness is not None:
+            if "prompts" in targets:
+                old = harness.prompts.get("system", harness.goal)
+                harness.prompts["system"] = old + f"\nRetrospective reinforcement: {instruction}"
+                candidate["changes"].append({"harness": harness.name, "target": "prompts", "status": "candidate"})
+            if "memory" in targets:
+                harness.memory_policy.setdefault("retrospectives", [])
+                harness.memory_policy["retrospectives"].append(instruction)
+                candidate["changes"].append({"harness": harness.name, "target": "memory", "status": "candidate"})
+            if "skills" in targets:
+                harness.skills[f"retro_{stable_hash(instruction)[:8]}"] = instruction
+                candidate["changes"].append({"harness": harness.name, "target": "skills", "status": "candidate"})
+            if "evaluation" in targets:
+                harness.rewards.append(RewardSpec(name=f"retro_{stable_hash(instruction)[:8]}", kind="retrospective", weights={"success": 1.0}))
+                candidate["changes"].append({"harness": harness.name, "target": "evaluation", "status": "candidate"})
+        else:
+            candidate["changes"].append({"harness": None, "target": "project", "status": "recorded_only"})
+
+        results = self.evaluate()
+        candidate["evaluation"] = [result.to_dict() for result in results]
+        candidate["promoted"] = not any(result.failures for result in results)
+        archive_dir = ensure_dir(self.root / ".agentrl" / ("candidates" if candidate["promoted"] else "rejected"))
+        candidate_path = archive_dir / f"retro-candidate-{stable_hash(candidate)[:8]}.json"
+        candidate_path.write_text(json.dumps(candidate, indent=2), encoding="utf-8")
+        self.registry.register_file(feedback_path, entity=f"reinforcement:{target}", metadata={"source": reinforcement["source"]})
+        self.registry.register_file(candidate_path, entity=f"retro_candidate:{target}", metadata={"promoted": candidate["promoted"]})
+        if candidate["promoted"]:
+            self.compile()
+        return {"status": "reinforced", "target": target, "feedback": reinforcement, "candidate": candidate, "path": str(feedback_path)}
+
+    def _harness_for_reinforcement_target(self, target: str) -> Harness | None:
+        normalized = target.lower().replace("_", "-").replace(" ", "-")
+        for harness in self.harnesses.values():
+            names = {
+                harness.name.lower(),
+                str(harness.metadata.get("agent_name", "")).lower(),
+                str(harness.metadata.get("agent_name", "")).lower().replace(" ", "-"),
+            }
+            if target.lower() in names or normalized in names:
+                return harness
+        return None
+
     def auto_harness(self, mode: str = "static") -> dict[str, Any]:
         if mode not in {"static", "adaptive"}:
             raise ValueError("mode must be static or adaptive")

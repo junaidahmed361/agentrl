@@ -71,6 +71,12 @@ project.compile()
 project.fit()          # sklearn-style alias for lifecycle train/evolve
 project.transform()    # compiled harness artifacts
 project.score()        # average harness evaluation pass rate
+project.reinforce({    # retro feedback routed from Campaigns or another product layer
+    "source": "campaign_retrospective",
+    "target": "Market Researcher",
+    "instruction": "Require competitor price citations before recommendations.",
+    "reinforcement_targets": ["evaluation", "memory", "prompts"],
+})
 project.train(strategy="verification")
 project.evaluate()
 project.auto_harness()
@@ -321,6 +327,12 @@ project.compile()
 project.fit()          # sklearn-style alias for lifecycle train/evolve
 project.transform()    # compiled harness artifacts
 project.score()        # average harness evaluation pass rate
+project.reinforce({    # retro feedback routed from Campaigns or another product layer
+    "source": "campaign_retrospective",
+    "target": "Market Researcher",
+    "instruction": "Require competitor price citations before recommendations.",
+    "reinforcement_targets": ["evaluation", "memory", "prompts"],
+})
 project.train(strategy="verification")
 project.evaluate()
 project.auto_harness()
